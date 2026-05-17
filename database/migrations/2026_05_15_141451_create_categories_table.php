@@ -10,20 +10,21 @@ return new class extends Migration
      * Run the migrations.
      */
     public function up(): void
-    {
-        Schema::create('courses', function (Blueprint $table) {
-            $table->id();
-            $table->string('title');
-            $table->foreignId('instructor_id')->nullable()->constrained('users')->onDelete('set null');
-            $table->timestamps();
-        });
-    }
+{
+    Schema::create('categories', function (Blueprint $table) {
+        $table->id();
+        $table->string('name')->unique();
+        $table->text('description')->nullable();
+        $table->string('slug')->unique();
+        $table->timestamps();
+    });
+}
 
     /**
      * Reverse the migrations.
      */
     public function down(): void
     {
-        Schema::dropIfExists('courses');
+        Schema::dropIfExists('categories');
     }
 };
