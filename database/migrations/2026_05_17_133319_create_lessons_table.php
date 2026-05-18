@@ -23,11 +23,10 @@ return new class extends Migration
             $table->string('video_url')->nullable();
             $table->string('video_thumbnail')->nullable();
 
-            $table->longText('content')->nullable();
-
+            $table->text('text_content')->nullable();
             $table->integer('duration_minutes')->default(0);
             $table->boolean('is_preview')->default(false);
-            $table->integer('sort_order')->default(0);
+            $table->integer('order_number')->default(0);
             $table->timestamps();
         });
     }

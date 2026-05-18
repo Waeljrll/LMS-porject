@@ -8,6 +8,7 @@ use App\Models\Lesson;
 use App\Models\Section;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Storage;
 
 class LessonController extends Controller
 {
@@ -22,34 +23,50 @@ class LessonController extends Controller
         return view('pages.instructor.courses.create_lesson', compact('section', 'course'));
     }
 
-    public function storeLesson(StoreLessonRequest $request, Section $section)
+    public function storeLesson(UpdateLessonRequest $request, $section_id)
     {
+        $section = Section::findOrFail($section_id);
+
+        if (auth()->user()->role === 'instructor' && $section->course->instructor_id !== auth()->id()) {
+            abort(403);
+        }
+
         $validated = $request->validated();
+        $nextOrder = $section->lessons()->count() + 1;
 
-        $order = $section->lessons()->count() + 1;
-
-        Lesson::create([
+        $createData = [
             'section_id' => $section->id,
             'title' => $validated['title'],
             'slug' => Str::slug($validated['title']),
-            'lesson_type' => $validated['lesson_type'],
-            // لو نوع الدرس فيديو بنسيف لينك الفيديو، لو مقال بينزل نل (Null)
-            'video_url' => $validated['lesson_type'] === 'video' ? $validated['video_url'] : null,
-            // لو نوع الدرس مقال بنسيف الـ content، لو فيديو بينزل نل (Null)
-            'content' => $validated['lesson_type'] === 'article' ? $validated['content'] : null,
             'duration_minutes' => $validated['duration_minutes'],
-            'is_preview' => $request->has('is_preview'), // 1 لو متعلم عليه، 0 لو لأ
-            'sort_order' => $order
-        ]);
+            'lesson_type' => $validated['lesson_type'],
+            'order_number' => $nextOrder,
+            'is_preview' => isset($validated['is_preview']) ? (bool)$validated['is_preview'] : false,
+        ];
 
-        $role = Auth::user()->isAdmin() ? 'admin' : 'instructor';
+        if ($validated['lesson_type'] === 'document') {
+            $createData['text_content'] = $request->input('text_content');
+            $createData['video_url'] = null;
+        } else {
+            $createData['text_content'] = null;
 
-        return redirect()->route($role . '.courses.content', $section->course_id)
-            ->with('success', 'تم إضافة الدرس بنجاح!');
+            // تعديل المسار ليرمي فوراً جوه فولدر lessons اللي أنت عملته
+            if ($request->hasFile('video_file')) {
+                // التخزين هنا هيعمل ملفات جوه public/lessons علطول
+                $createData['video_url'] = $request->file('video_file')->store('lessons', 'public');
+            } else {
+                $createData['video_url'] = $validated['video_url'] ?? null;
+            }
+        }
+
+        Lesson::create($createData);
+
+        return redirect()
+            ->route(auth()->user()->role . '.courses.content', $section->course_id)
+            ->with('success', 'تم إضافة الدرس الجديد بنجاح وجاري رفع الفيديو.');
     }
     public function editLesson(Lesson $lesson)
     {
-        // حماية: لو المستخدم مدرس، نتأكد إنه صاحب الكورس
         if (auth()->user()->role === 'instructor' && $lesson->section->course->instructor_id !== auth()->id()) {
             abort(403, 'غير مصرح لك بتعديل هذا الدرس.');
         }
@@ -64,30 +81,59 @@ class LessonController extends Controller
 
         $validated = $request->validated();
 
-        $lesson->update([
+        $updateData = [
             'title' => $validated['title'],
             'duration_minutes' => $validated['duration_minutes'],
             'lesson_type' => $validated['lesson_type'],
-            'is_preview' => isset($validated['is_preview']) ? $validated['is_preview'] : false,
-        ]);
+            'is_preview' => isset($validated['is_preview']) ? (bool)$validated['is_preview'] : false,
+        ];
+
+        if ($validated['lesson_type'] === 'document') {
+            $updateData['text_content'] = $request->input('text_content');
+            if ($lesson->video_url && !filter_var($lesson->video_url, FILTER_VALIDATE_URL)) {
+                Storage::disk('public')->delete($lesson->video_url);
+            }
+            $updateData['video_url'] = null;
+        } else {
+            $updateData['text_content'] = null;
+
+            if ($request->hasFile('video_file')) {
+                if ($lesson->video_url && !filter_var($lesson->video_url, FILTER_VALIDATE_URL)) {
+                    Storage::disk('public')->delete($lesson->video_url);
+                }
+                $updateData['video_url'] = $request->file('video_file')->store('lessons', 'public');
+            } elseif (!empty($validated['video_url'])) {
+                if ($lesson->video_url && !filter_var($lesson->video_url, FILTER_VALIDATE_URL)) {
+                    Storage::disk('public')->delete($lesson->video_url);
+                }
+                $updateData['video_url'] = $validated['video_url'];
+            } else {
+                $updateData['video_url'] = $lesson->video_url;
+            }
+        }
+
+        $lesson->update($updateData);
 
         return redirect()
             ->route(auth()->user()->role . '.courses.content', $lesson->section->course_id)
-            ->with('success', 'تم تحديث الدرس بنجاح.');
+            ->with('success', 'تم تحديث الدرس ومحتواه بنجاح.');
     }
     public function destroyLesson(Lesson $lesson)
     {
         if (auth()->user()->role === 'instructor' && $lesson->section->course->instructor_id !== auth()->id()) {
-            abort(403, 'غير مصرح لك بحذف هذا الدرس.');
-        }
-
-        if ($lesson->video_url && Storage::disk('public')->exists($lesson->video_url)) {
-            Storage::disk('public')->delete($lesson->video_url);
+            abort(403);
         }
 
         $courseId = $lesson->section->course_id;
+
+        if ($lesson->video_url && !filter_var($lesson->video_url, FILTER_VALIDATE_URL)) {
+            \Illuminate\Support\Facades\Storage::disk('public')->delete($lesson->video_url);
+        }
+
         $lesson->delete();
 
-        return back()->with('success', 'تم حذف الدرس بنجاح.');
+        return redirect()
+            ->route(auth()->user()->role . '.courses.content', $courseId)
+            ->with('success', 'تم حذف الدرس بنجاح.');
     }
 }

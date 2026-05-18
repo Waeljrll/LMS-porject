@@ -104,18 +104,28 @@ class CourseWizard extends Component
 
     public function saveCourse()
     {
-
         $courseRequest = new CourseRequest();
         $this->validate($courseRequest->rules($this->courseId));
+        if ($this->courseId && Auth::user()->isInstructor()) {
+            $existingCourse = Course::find($this->courseId);
+            if ($existingCourse && $existingCourse->instructor_id !== Auth::id()) {
+                abort(403, 'You can only edit your own courses.');
+            }
+        }
 
         if ($this->status === 'published') {
             if ($this->courseId) {
                 $course = Course::find($this->courseId);
-                if (!$course || $course->lessons()->count() === 0) {
+
+                // Check if course has at least 1 lesson
+                $lessonsCount = $course->lessons()->count();
+
+                if ($lessonsCount === 0) {
                     session()->flash('error', 'عذراً! لا يمكن نشر الكورس قبل إضافة درس واحد على الأقل. تم حفظ الكورس كـ مسودة (Draft).');
                     $this->status = 'draft';
                 }
             } else {
+                // New course - cannot publish immediately
                 session()->flash('error', 'لا يمكن نشر كورس جديد مباشرة قبل إضافة محتوى. تم تحويل الحالة إلى مسودة (Draft).');
                 $this->status = 'draft';
             }
@@ -148,7 +158,6 @@ class CourseWizard extends Component
             session()->flash('error', 'Error: ' . $e->getMessage());
             return;
         }
-
 
         if (Auth::user()->isAdmin()) {
             return redirect()->to(route('admin.courses.content', $savedCourseId));

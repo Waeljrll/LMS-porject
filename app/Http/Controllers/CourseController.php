@@ -35,6 +35,10 @@ class CourseController extends Controller
 
         return view('pages.instructor.courses.index', compact('courses'));
     }
+    public function show(Course $course)
+    {
+        return view('pages.student.courses.show', compact('course'));
+    }
 
     public function create()
     {
@@ -51,6 +55,26 @@ class CourseController extends Controller
         }
 
         return view('pages.admin.courses.edit', compact('course'));
+    }
+    public function update(Request $request, Course $course)
+    {
+        if (Auth::user()->isInstructor() && $course->instructor_id !== Auth::id()) {
+            abort(403, 'You can only edit your own courses.');
+        }
+
+        $validated = $request->validate([
+            'status' => 'sometimes|in:draft,published',
+        ]);
+
+        if (isset($validated['status']) && $validated['status'] === 'published') {
+            if ($course->lessons()->count() === 0) {
+                return back()->with('error', 'Cannot publish course without at least one lesson!');
+            }
+        }
+
+        $course->update($validated);
+
+        return redirect()->back()->with('success', 'Course updated successfully!');
     }
 
     public function destroy(Course $course)

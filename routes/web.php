@@ -36,6 +36,12 @@ Route::get('/', function () {
     return redirect()->route('login');
 });
 
+Route::get('/dashboard', function () {
+    if (Auth::user()->isAdmin()) return redirect()->route('admin.dashboard');
+    if (Auth::user()->isInstructor()) return redirect()->route('instructor.dashboard');
+    return redirect()->route('student.dashboard');
+})->middleware(['auth'])->name('dashboard');
+
 Route::middleware(['auth'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'show'])->name('profile.view');
     Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -58,13 +64,11 @@ Route::middleware(['auth', 'role:admin'])
         Route::resource('courses', CourseController::class);
         Route::get('/courses/{course}/content', [CourseController::class, 'content'])->name('courses.content');
 
-        // رووتس السكاشن بقت تروح للـ SectionController
         Route::post('/courses/{course}/sections', [SectionController::class, 'storeSection'])->name('sections.store');
         Route::post('/sections/{section}/reorder/{direction}', [SectionController::class, 'reorderSection'])->name('sections.reorder');
         Route::delete('/sections/{section}', [SectionController::class, 'destroySection'])->name('sections.destroy');
         Route::put('/sections/{section}', [SectionController::class, 'updateSection'])->name('sections.update');
 
-        // رووتس الدروس بقت تروح للـ LessonController
         Route::get('/sections/{section}/lessons/create', [LessonController::class, 'createLesson'])->name('lessons.create');
         Route::post('/sections/{section}/lessons', [LessonController::class, 'storeLesson'])->name('lessons.store');
         Route::get('/lessons/{lesson}/edit', [LessonController::class, 'editLesson'])->name('lessons.edit');
@@ -77,28 +81,19 @@ Route::middleware(['auth', 'role:admin'])
 | INSTRUCTOR
 |--------------------------------------------------------------------------
 */
-/*
-|--------------------------------------------------------------------------
-| INSTRUCTOR
-|--------------------------------------------------------------------------
-*/
 Route::middleware(['auth', 'role:instructor'])
     ->prefix('instructor')
     ->name('instructor.')
     ->group(function () {
         Route::get('/dashboard', [InstructorDashboard::class, 'index'])->name('dashboard');
-
         Route::get('/my-courses', [CourseController::class, 'myCourses'])->name('courses.my');
-
         Route::get('/courses', [CourseController::class, 'index'])->name('courses.index');
-
         Route::get('/courses/create', [CourseController::class, 'create'])->name('courses.create');
         Route::get('/courses/{course}/edit', [CourseController::class, 'edit'])->name('courses.edit');
         Route::put('/courses/{course}', [CourseController::class, 'update'])->name('courses.update');
         Route::delete('/courses/{course}', [CourseController::class, 'destroy'])->name('courses.destroy');
-        Route::get('/courses/{id}/content', [CourseController::class, 'content'])->name('courses.content');
+        Route::get('/courses/{course}/content', [CourseController::class, 'content'])->name('courses.content');
 
-        // Sections & Lessons
         Route::post('/courses/{course}/sections', [SectionController::class, 'storeSection'])->name('sections.store');
         Route::put('/sections/{section}', [SectionController::class, 'updateSection'])->name('sections.update');
         Route::post('/sections/{section}/reorder/{direction}', [SectionController::class, 'reorderSection'])->name('sections.reorder');
@@ -107,7 +102,6 @@ Route::middleware(['auth', 'role:instructor'])
         Route::post('/sections/{section}/lessons', [LessonController::class, 'storeLesson'])->name('lessons.store');
         Route::get('/lessons/{lesson}/edit', [LessonController::class, 'editLesson'])->name('lessons.edit');
         Route::put('/lessons/{lesson}', [LessonController::class, 'updateLesson'])->name('lessons.update');
-
         Route::delete('/lessons/{lesson}', [LessonController::class, 'destroyLesson'])->name('lessons.destroy');
     });
 
@@ -126,4 +120,7 @@ Route::middleware(['auth', 'role:student'])
         Route::get('/courses/{course}', [StudentCourse::class, 'show'])->name('courses.show');
         Route::post('/courses/{course}/enroll', [StudentCourse::class, 'enroll'])->name('courses.enroll');
     });
+
+Route::middleware(['auth'])->get('/courses/{course}', [StudentCourse::class, 'show'])->name('courses.show');
+
 require __DIR__ . '/auth.php';

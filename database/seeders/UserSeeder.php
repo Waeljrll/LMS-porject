@@ -31,6 +31,15 @@ class UserSeeder extends Seeder
             'bio' => 'Senior PHP & Laravel Developer',
             'email_verified_at' => now(),
         ]);
+        User::create([
+            'name' => 'Maha ahmed',
+            'email' => 'maha@system.com',
+            'password' => Hash::make('50500050'),
+            'role' => 'student',
+            'phone' => '01135635380',
+            'bio' => 'fresh student',
+            'email_verified_at' => now(),
+        ]);
 
 
     }

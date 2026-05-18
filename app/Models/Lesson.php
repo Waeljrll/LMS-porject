@@ -10,14 +10,12 @@ class Lesson extends Model
         'section_id',
         'title',
         'slug',
-        'lesson_type',
-        'video_source',
-        'video_url',
-        'video_thumbnail',
-        'content',
         'duration_minutes',
+        'lesson_type',
+        'video_url',
+        'text_content',
         'is_preview',
-        'sort_order'
+        'order_number'
     ];
 
 
@@ -31,5 +29,17 @@ class Lesson extends Model
     {
         return $this->belongsToMany(User::class, 'lesson_progress', 'lesson_id', 'student_id')
             ->withTimestamps();
+    }
+    public function videoUrl()
+    {
+        if (!$this->video_url) {
+            return null;
+        }
+
+        if (filter_var($this->video_url, FILTER_VALIDATE_URL)) {
+            return $this->video_url;
+        }
+
+        return asset("storage/{$this->video_url}");
     }
 }

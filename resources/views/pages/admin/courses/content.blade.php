@@ -10,7 +10,7 @@
             <div class="d-flex gap-2">
                 @php $role = auth()->user()->isAdmin() ? 'admin' : 'instructor'; @endphp
 
-                <a href="{{ route($role . '.courses.show', $course->id) }}?preview=true" target="_blank"
+                <a href="{{ route('student.courses.show', $course->id) }}?preview=true" target="_blank"
                     class="btn btn-outline-primary btn-sm d-flex align-items-center gap-1">
                     <i class="bi bi-eye"></i> Preview Course
                 </a>
@@ -24,13 +24,19 @@
 
         @if (session('success'))
             <div class="alert alert-success alert-dismissible fade show" role="alert">
-                {{ session('success') }}
+                <i class="bi bi-check-circle me-2"></i>{{ session('success') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        @endif
+
+        @if (session('error'))
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="bi bi-exclamation-triangle me-2"></i>{{ session('error') }}
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
         @endif
 
         <div class="row">
-            {{-- الفورم الجانبية لإضافة فصل --}}
             <div class="col-md-4 mb-4">
                 <div class="card shadow-sm border-0">
                     <div class="card-header bg-primary text-white py-3">
@@ -52,9 +58,52 @@
                         </form>
                     </div>
                 </div>
+
+                <!-- Course Status Card -->
+                <div class="card shadow-sm border-0 mt-3">
+                    <div
+                        class="card-header bg-{{ $course->status == 'published' ? 'success' : 'warning' }} text-white py-3">
+                        <h6 class="m-0 font-weight-bold">
+                            <i class="bi bi-info-circle me-2"></i>حالة الكورس
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <span class="fw-bold">الحالة:</span>
+                            <span class="badge bg-{{ $course->status == 'published' ? 'success' : 'secondary' }} fs-6">
+                                {{ $course->status == 'published' ? 'منشور' : 'مسودة' }}
+                            </span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <span class="fw-bold">عدد الفصول:</span>
+                            <span class="badge bg-primary">{{ $course->sections->count() }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <span class="fw-bold">عدد الدروس:</span>
+                            <span class="badge bg-info">{{ $course->lessons->count() }}</span>
+                        </div>
+
+                        @if ($course->status == 'draft' && $course->lessons->count() > 0)
+                            <div class="card shadow-sm border-0 mt-3">
+                                <div class="card-body text-center">
+                                    <h6 class="text-success mb-3">
+                                        <i class="bi bi-check-circle me-2"></i>الكورس جاهز للنشر!
+                                    </h6>
+                                    <form action="{{ route($role . '.courses.update', $course->id) }}" method="POST">
+                                        @csrf
+                                        @method('PUT')
+                                        <input type="hidden" name="status" value="published">
+                                        <button type="submit" class="btn btn-success w-100">
+                                            <i class="bi bi-globe me-2"></i>نشر الكورس الآن
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        @endif
+                    </div>
+                </div>
             </div>
 
-            {{-- مخطط الكورس والدروس --}}
             <div class="col-md-8">
                 <div class="card shadow-sm border-0">
                     <div class="card-header bg-white py-3">
@@ -88,7 +137,6 @@
                                             </span>
 
                                             <div class="btn-group">
-                                                {{-- ترتيب لأعلى --}}
                                                 <form
                                                     action="{{ route($role . '.sections.reorder', [$section->id, 'up']) }}"
                                                     method="POST" class="d-inline">
@@ -96,8 +144,6 @@
                                                     <button class="btn btn-outline-secondary btn-sm" title="Move Up"><i
                                                             class="bi bi-arrow-up"></i></button>
                                                 </form>
-
-                                                {{-- ترتيب لأسفل --}}
                                                 <form
                                                     action="{{ route($role . '.sections.reorder', [$section->id, 'down']) }}"
                                                     method="POST" class="d-inline me-2">
@@ -106,36 +152,30 @@
                                                             class="bi bi-arrow-down"></i></button>
                                                 </form>
 
-                                                {{-- إضافة درس --}}
                                                 <a href="{{ route($role . '.lessons.create', $section->id) }}"
                                                     class="btn btn-outline-success btn-sm me-1">
                                                     <i class="bi bi-plus-circle"></i> Add Lesson
                                                 </a>
 
-                                                {{-- زرار تعديل الفصل الذكي يفتح Modal منبثق لمنع خطأ الروت --}}
-                                                <button type="button" class="btn btn-outline-secondary btn-sm me-1"
-                                                    data-bs-toggle="modal"
-                                                    data-bs-target="#editSectionModal{{ $section->id }}"
-                                                    title="تعديل الفصل">
-                                                    <i class="bi bi-pencil"></i>
-                                                </button>
-
-                                                {{-- حذف الفصل --}}
-                                                <form action="{{ route($role . '.sections.destroy', $section->id) }}"
-                                                    method="POST" class="d-inline"
-                                                    onsubmit="return confirm('هل أنت متأكد من حذف هذا الفصل وكل الدروس اللي جواه؟')">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <button type="submit" class="btn btn-outline-danger btn-sm"
-                                                        title="حذف الفصل">
+                                                @if ($section->lessons->count() > 0)
+                                                    <button class="btn btn-outline-danger btn-sm" disabled
+                                                        title="لا يمكن حذف فصل يحتوي على دروس!">
                                                         <i class="bi bi-trash"></i>
                                                     </button>
-                                                </form>
+                                                @else
+                                                    <form action="{{ route($role . '.sections.destroy', $section->id) }}"
+                                                        method="POST" class="d-inline"
+                                                        onsubmit="return confirm('هل أنت متأكد من حذف هذا الفصل؟')">
+                                                        @csrf
+                                                        @method('DELETE')
+                                                        <button type="submit" class="btn btn-outline-danger btn-sm"><i
+                                                                class="bi bi-trash"></i></button>
+                                                    </form>
+                                                @endif
                                             </div>
                                         </div>
                                     </div>
 
-                                    {{-- قائمة الدروس داخل الفصل --}}
                                     <div class="card-body p-0 bg-white">
                                         <ul class="list-group list-group-flush">
                                             @if ($section->lessons->count() == 0)
@@ -163,22 +203,21 @@
                                                                 @endif
                                                             </div>
                                                         </div>
-
-                                                        <div class="d-flex align-items-center gap-2">
+                                                        <div class="btn-group">
                                                             <a href="{{ route($role . '.lessons.edit', $lesson->id) }}"
-                                                                class="btn btn-sm btn-link text-secondary p-0 m-0"
+                                                                class="btn btn-sm btn-outline-primary"
                                                                 title="تعديل الدرس">
                                                                 <i class="bi bi-pencil"></i>
                                                             </a>
-
                                                             <form
                                                                 action="{{ route($role . '.lessons.destroy', $lesson->id) }}"
-                                                                method="POST" class="d-inline m-0 p-0"
-                                                                onsubmit="return confirm('هل أنت متأكد من حذف هذا الدرس نهائياً؟')">
+                                                                method="POST" class="d-inline"
+                                                                onsubmit="return confirm('هل أنت متأكد من حذف هذا الدرس؟ لا يمكن التراجع عن هذا الإجراء.')">
                                                                 @csrf
                                                                 @method('DELETE')
                                                                 <button type="submit"
-                                                                    class="btn btn-sm btn-link text-danger p-0 m-0 border-0">
+                                                                    class="btn btn-sm btn-outline-danger"
+                                                                    title="حذف الدرس">
                                                                     <i class="bi bi-trash"></i>
                                                                 </button>
                                                             </form>
@@ -187,43 +226,6 @@
                                                 @endforeach
                                             @endif
                                         </ul>
-                                    </div>
-                                </div>
-
-                                <div class="modal fade" id="editSectionModal{{ $section->id }}" tabindex="-1"
-                                    aria-labelledby="editSectionModalLabel{{ $section->id }}" aria-hidden="true">
-                                    <div class="modal-dialog">
-                                        <div class="modal-content">
-                                            <div class="modal-header">
-                                                <h5 class="modal-title fw-bold text-dark"
-                                                    id="editSectionModalLabel{{ $section->id }}">تعديل الفصل:
-                                                    {{ $section->title }}</h5>
-                                                <button type="button" class="btn-close" data-bs-dismiss="modal"
-                                                    aria-label="Close"></button>
-                                            </div>
-                                            <form action="{{ route($role . '.sections.update', $section->id) }}"
-                                                method="POST">
-                                                @csrf
-                                                @method('PUT')
-                                                <div class="modal-body">
-                                                    <div class="mb-3">
-                                                        <label class="form-label fw-bold">عنوان الفصل *</label>
-                                                        <input type="text" name="title" class="form-control"
-                                                            value="{{ $section->title }}" required>
-                                                    </div>
-                                                    <div class="mb-3">
-                                                        <label class="form-label fw-bold">الوصف (اختياري)</label>
-                                                        <textarea name="description" class="form-control" rows="3">{{ $section->description }}</textarea>
-                                                    </div>
-                                                </div>
-                                                <div class="modal-footer">
-                                                    <button type="button" class="btn btn-secondary btn-sm"
-                                                        data-bs-shadow="modal" data-bs-dismiss="modal">إلغاء</button>
-                                                    <button type="submit" class="btn btn-primary btn-sm">حفظ
-                                                        التغييرات</button>
-                                                </div>
-                                            </form>
-                                        </div>
                                     </div>
                                 </div>
                             @endforeach

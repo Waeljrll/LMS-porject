@@ -25,15 +25,17 @@ class AuthenticatedSessionController extends Controller
     public function store(LoginRequest $request): RedirectResponse
     {
         $request->authenticate();
+
+        if (auth()->user()->status === 'inactive') {
+            auth()->logout();
+            return redirect()->route('login')->withErrors([
+                'email' => 'هذا الحساب معطل حالياً. يرجى التواصل مع الإدارة.'
+            ]);
+        }
+
         $request->session()->regenerate();
 
-        $user = $request->user();
-
-        return match (true) {
-            $user->isAdmin() => redirect()->route('admin.dashboard'),
-            $user->isInstructor() => redirect()->route('instructor.dashboard'),
-            default => redirect()->route('student.dashboard'),
-        };
+        return redirect()->intended(route(auth()->user()->role . '.dashboard'));
     }
 
     /**

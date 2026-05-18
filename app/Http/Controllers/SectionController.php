@@ -63,10 +63,9 @@ class SectionController extends Controller
 
         $validated = $request->validated();
 
-
         $section->update([
-            'title' => $validated->title,
-            'description' => $validated->description,
+            'title' => $validated['title'],
+            'description' => $validated['description'] ?? null,
         ]);
 
         return back()->with('success', 'تم تحديث الفصل بنجاح.');
@@ -79,11 +78,19 @@ class SectionController extends Controller
         if (Auth::user()->isInstructor() && $course->instructor_id !== Auth::id()) {
             abort(403, 'Unauthorized');
         }
+
         if ($section->lessons()->count() > 0) {
-            return redirect()->back()->with('error', 'لا يمكنك حذف فصل يحتوي على دروس!');
+            return redirect()->back()
+                ->with('error', 'لا يمكن حذف هذا الفصل لأنه يحتوي على ' . $section->lessons()->count() . ' درس/دروس. قم بحذف الدروس أولاً أو انقلها إلى فصل آخر.');
         }
 
         $section->delete();
+
+        $remainingSections = $course->sections()->orderBy('order_number', 'asc')->get();
+        foreach ($remainingSections as $index => $sec) {
+            $sec->update(['order_number' => $index + 1]);
+        }
+
         return redirect()->back()->with('success', 'تم حذف الفصل بنجاح!');
     }
 }

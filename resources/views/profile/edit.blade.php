@@ -23,89 +23,40 @@
         <div class="row">
             <div class="col-xl-8">
 
-                <!-- Profile Update Card -->
                 <div class="card">
                     <div class="card-body pt-3">
                         <h5 class="card-title">Update Profile Information</h5>
 
-                        <form method="post" action="{{ route('profile.update') }}" enctype="multipart/form-data">
+                        <form action="{{ route('profile.update') }}" method="POST">
                             @csrf
-                            @method('patch')
+                            @method('PATCH')
 
-                            <div class="row mb-3 align-items-center">
-                                <label class="col-md-4 col-lg-3 col-form-label">Profile Image</label>
-                                <div class="col-md-8 col-lg-9">
-                                    <div class="d-flex align-items-center gap-3">
-                                        <img src="{{ $user->imageUrl() }}" alt="Profile"
-                                            class="rounded-circle img-thumbnail"
-                                            style="width: 120px; height: 120px; object-fit: cover;">
-
-                                        <div class="flex-grow-1">
-                                            <input type="file" name="profile_picture" class="form-control">
-                                            @error('profile_picture')
-                                                <div class="text-danger small mt-1">{{ $message }}</div>
-                                            @enderror
-                                            <small class="text-muted">JPG or PNG, max 2MB</small>
-                                        </div>
-                                    </div>
-                                </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Name</label>
+                                <input type="text" name="name" class="form-control"
+                                    value="{{ old('name', auth()->user()->name) }}" required>
+                                @error('name')
+                                    <div class="text-danger small mt-1">{{ $message }}</div>
+                                @enderror
                             </div>
 
-                            <div class="row mb-3">
-                                <label for="name" class="col-md-4 col-lg-3 col-form-label">Full Name</label>
-                                <div class="col-md-8 col-lg-9">
-                                    <input name="name" type="text" class="form-control" id="name"
-                                        value="{{ old('name', $user->name) }}" required>
-                                    @error('name')
-                                        <div class="text-danger small">{{ $message }}</div>
-                                    @enderror
-                                </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Email Address</label>
+                                <input type="email" name="email" class="form-control"
+                                    value="{{ old('email', auth()->user()->email) }}" required>
+                                @error('email')
+                                    <div class="text-danger small mt-1">{{ $message }}</div>
+                                @enderror
                             </div>
 
-                            <div class="row mb-3">
-                                <label for="email" class="col-md-4 col-lg-3 col-form-label">Email</label>
-                                <div class="col-md-8 col-lg-9">
-                                    <input name="email" type="email" class="form-control" id="email"
-                                        value="{{ old('email', $user->email) }}" required>
-                                    @error('email')
-                                        <div class="text-danger small">{{ $message }}</div>
-                                    @enderror
-                                </div>
-                            </div>
-
-                            <div class="row mb-3">
-                                <label for="phone" class="col-md-4 col-lg-3 col-form-label">Phone</label>
-                                <div class="col-md-8 col-lg-9">
-                                    <input name="phone" type="text" class="form-control" id="phone"
-                                        value="{{ old('phone', $user->phone) }}">
-                                    @error('phone')
-                                        <div class="text-danger small">{{ $message }}</div>
-                                    @enderror
-                                </div>
-                            </div>
-
-                            <div class="row mb-3">
-                                <label for="about" class="col-md-4 col-lg-3 col-form-label">About (Bio)</label>
-                                <div class="col-md-8 col-lg-9">
-                                    <textarea name="bio" class="form-control" id="about" style="height: 100px" maxlength="500">{{ old('bio', $user->bio) }}</textarea>
-                                    <small class="text-muted">Maximum 500 characters</small>
-                                    @error('bio')
-                                        <div class="text-danger small">{{ $message }}</div>
-                                    @enderror
-                                </div>
-                            </div>
-
-                            <div class="text-center mt-4">
-                                <button type="submit" class="btn btn-primary px-4">
-                                    <i class="bi bi-check-circle me-1"></i>Save Changes
-                                </button>
+                            <div class="text-end mt-4">
+                                <button type="submit" class="btn btn-primary btn-sm px-4">Save Changes</button>
                             </div>
                         </form>
 
                     </div>
                 </div>
 
-                <!-- Change Password Card -->
                 <div class="card mt-4">
                     <div class="card-body pt-3">
                         <h5 class="card-title">
@@ -118,9 +69,11 @@
                             @method('put')
 
                             <div class="row mb-3">
-                                <label for="update_password_current_password" class="col-md-4 col-lg-3 col-form-label">Current Password</label>
+                                <label for="update_password_current_password"
+                                    class="col-md-4 col-lg-3 col-form-label">Current Password</label>
                                 <div class="col-md-8 col-lg-9">
-                                    <input id="update_password_current_password" name="current_password" type="password" class="form-control" autocomplete="current-password" required>
+                                    <input id="update_password_current_password" name="current_password" type="password"
+                                        class="form-control" autocomplete="current-password" required>
                                     @error('current_password', 'updatePassword')
                                         <div class="text-danger small mt-1">{{ $message }}</div>
                                     @enderror
@@ -128,9 +81,11 @@
                             </div>
 
                             <div class="row mb-3">
-                                <label for="update_password_password" class="col-md-4 col-lg-3 col-form-label">New Password</label>
+                                <label for="update_password_password" class="col-md-4 col-lg-3 col-form-label">New
+                                    Password</label>
                                 <div class="col-md-8 col-lg-9">
-                                    <input id="update_password_password" name="password" type="password" class="form-control" autocomplete="new-password" required>
+                                    <input id="update_password_password" name="password" type="password"
+                                        class="form-control" autocomplete="new-password" required>
                                     @error('password', 'updatePassword')
                                         <div class="text-danger small mt-1">{{ $message }}</div>
                                     @enderror
@@ -138,9 +93,11 @@
                             </div>
 
                             <div class="row mb-3">
-                                <label for="update_password_password_confirmation" class="col-md-4 col-lg-3 col-form-label">Confirm Password</label>
+                                <label for="update_password_password_confirmation"
+                                    class="col-md-4 col-lg-3 col-form-label">Confirm Password</label>
                                 <div class="col-md-8 col-lg-9">
-                                    <input id="update_password_password_confirmation" name="password_confirmation" type="password" class="form-control" autocomplete="new-password" required>
+                                    <input id="update_password_password_confirmation" name="password_confirmation"
+                                        type="password" class="form-control" autocomplete="new-password" required>
                                     @error('password_confirmation', 'updatePassword')
                                         <div class="text-danger small mt-1">{{ $message }}</div>
                                     @enderror
@@ -164,15 +121,16 @@
                     </div>
                 </div>
 
-                <!-- Delete Account Card -->
                 <div class="card mt-4 border-danger">
                     <div class="card-body pt-3">
                         <h5 class="card-title text-danger">
                             <i class="bi bi-exclamation-triangle me-2"></i>Delete Account
                         </h5>
-                        <p class="text-muted small">Once your account is deleted, all of its resources and data will be permanently deleted. Before deleting your account, please download any data or information that you wish to retain.</p>
+                        <p class="text-muted small">Once your account is deleted, all of its resources and data will be
+                            permanently deleted.</p>
 
-                        <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteAccountModal">
+                        <button type="button" class="btn btn-danger" data-bs-toggle="modal"
+                            data-bs-target="#deleteAccountModal">
                             <i class="bi bi-trash me-1"></i>Delete Account
                         </button>
                     </div>
@@ -182,7 +140,6 @@
         </div>
     </section>
 
-    <!-- Delete Account Modal -->
     <div class="modal fade" id="deleteAccountModal" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -194,10 +151,12 @@
                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
                     <div class="modal-body">
-                        <p>Once your account is deleted, all of its resources and data will be permanently deleted. Please enter your password to confirm you would like to permanently delete your account.</p>
+                        <p>Once your account is deleted, all of its resources and data will be permanently deleted. Please
+                            enter your password to confirm.</p>
                         <div class="mb-3">
                             <label class="form-label">Password</label>
-                            <input type="password" name="password" class="form-control" placeholder="Enter your password" required>
+                            <input type="password" name="password" class="form-control"
+                                placeholder="Enter your password" required>
                             @error('password', 'userDeletion')
                                 <div class="text-danger small mt-1">{{ $message }}</div>
                             @enderror
