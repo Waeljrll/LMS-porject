@@ -1,7 +1,14 @@
 <div>
-    @if (session()->has('message'))
+    @if (session()->has('success'))
         <div class="alert alert-success alert-dismissible fade show" role="alert">
-            {{ session('message') }}
+            {{ session('success') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    @endif
+
+    @if (session()->has('error'))
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            {{ session('error') }}
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     @endif
@@ -20,26 +27,27 @@
 
                         <div class="mb-3">
                             <label class="form-label fw-bold">Course Title</label>
-                            <input type="text" wire:model="title"
-                                class="form-control @error('title') is-invalid @enderror">
-                            @error('title')
+                            <input type="text" wire:model="form.title"
+                                class="form-control @error('form.title') is-invalid @enderror">
+                            @error('form.title')
                                 <span class="text-danger small">{{ $message }}</span>
                             @enderror
                         </div>
 
                         <div class="mb-3">
                             <label class="form-label fw-bold">Short Description (for Card)</label>
-                            <input type="text" wire:model="short_description"
-                                class="form-control @error('short_description') is-invalid @enderror">
-                            @error('short_description')
+                            <input type="text" wire:model="form.short_description"
+                                class="form-control @error('form.short_description') is-invalid @enderror">
+                            @error('form.short_description')
                                 <span class="text-danger small">{{ $message }}</span>
                             @enderror
                         </div>
 
                         <div class="mb-3">
                             <label class="form-label fw-bold">Full Description</label>
-                            <textarea wire:model="description" class="form-control @error('description') is-invalid @enderror" rows="5"></textarea>
-                            @error('description')
+                            <textarea wire:model="form.description" class="form-control @error('form.description') is-invalid @enderror"
+                                rows="5"></textarea>
+                            @error('form.description')
                                 <span class="text-danger small">{{ $message }}</span>
                             @enderror
                         </div>
@@ -47,22 +55,22 @@
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label class="form-label fw-bold">Category</label>
-                                <select wire:model="category_id"
-                                    class="form-select @error('category_id') is-invalid @enderror">
+                                <select wire:model="form.category_id"
+                                    class="form-select @error('form.category_id') is-invalid @enderror">
                                     <option value="">Select Category...</option>
                                     @foreach ($categories as $category)
                                         <option value="{{ $category->id }}">{{ $category->name }}</option>
                                     @endforeach
                                 </select>
-                                @error('category_id')
+                                @error('form.category_id')
                                     <span class="text-danger small">{{ $message }}</span>
                                 @enderror
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label class="form-label fw-bold">Language</label>
-                                <input type="text" wire:model="language"
-                                    class="form-control @error('language') is-invalid @enderror">
-                                @error('language')
+                                <input type="text" wire:model="form.language"
+                                    class="form-control @error('form.language') is-invalid @enderror">
+                                @error('form.language')
                                     <span class="text-danger small">{{ $message }}</span>
                                 @enderror
                             </div>
@@ -72,8 +80,8 @@
                             <label class="form-label fw-bold">Instructor</label>
 
                             @if (Auth::user()->isAdmin())
-                                <select wire:model="instructor_id"
-                                    class="form-select @error('instructor_id') is-invalid @enderror">
+                                <select wire:model="form.instructor_id"
+                                    class="form-select @error('form.instructor_id') is-invalid @enderror">
                                     <option value="">Select Instructor...</option>
                                     @foreach ($instructors as $instructor)
                                         <option value="{{ $instructor->id }}">{{ $instructor->name }}</option>
@@ -81,10 +89,10 @@
                                 </select>
                             @else
                                 <input type="text" class="form-control" value="{{ Auth::user()->name }}" disabled>
-                                <input type="hidden" wire:model="instructor_id">
+                                <input type="hidden" wire:model="form.instructor_id">
                             @endif
 
-                            @error('instructor_id')
+                            @error('form.instructor_id')
                                 <span class="text-danger small">{{ $message }}</span>
                             @enderror
                         </div>
@@ -92,21 +100,21 @@
                         <div class="mb-3">
                             <label class="form-label fw-bold d-block">Difficulty Level</label>
                             <div class="form-check form-check-inline">
-                                <input class="form-check-input" type="radio" wire:model="difficulty_level"
+                                <input class="form-check-input" type="radio" wire:model="form.difficulty_level"
                                     value="beginner" id="lvl1">
                                 <label class="form-check-label" for="lvl1">Beginner</label>
                             </div>
                             <div class="form-check form-check-inline">
-                                <input class="form-check-input" type="radio" wire:model="difficulty_level"
+                                <input class="form-check-input" type="radio" wire:model="form.difficulty_level"
                                     value="intermediate" id="lvl2">
                                 <label class="form-check-label" for="lvl2">Intermediate</label>
                             </div>
                             <div class="form-check form-check-inline">
-                                <input class="form-check-input" type="radio" wire:model="difficulty_level"
+                                <input class="form-check-input" type="radio" wire:model="form.difficulty_level"
                                     value="advanced" id="lvl3">
                                 <label class="form-check-label" for="lvl3">Advanced</label>
                             </div>
-                            @error('difficulty_level')
+                            @error('form.difficulty_level')
                                 <div class="text-danger small d-block">{{ $message }}</div>
                             @enderror
                         </div>
@@ -114,30 +122,31 @@
                         <div class="mb-3">
                             <label class="form-label fw-bold">Course Thumbnail</label>
 
-                            @if ($existingThumbnail && !$thumbnail)
+                            @if ($form->existingThumbnail && !$form->thumbnail)
                                 <div class="mb-2">
-                                    <img src="{{ asset('storage/' . $existingThumbnail) }}" width="100"
+                                    <img src="{{ asset('storage/' . $form->existingThumbnail) }}" width="100"
                                         class="rounded border">
                                     <p class="text-muted small mb-0">Current Image</p>
                                 </div>
                             @endif
 
-                            <input type="file" wire:model="thumbnail"
-                                class="form-control @error('thumbnail') is-invalid @enderror">
+                            <input type="file" wire:model="form.thumbnail"
+                                class="form-control @error('form.thumbnail') is-invalid @enderror">
                             <small class="text-muted">Max 2MB - Leave empty to keep current image</small>
 
-                            @error('thumbnail')
+                            @error('form.thumbnail')
                                 <span class="text-danger small d-block">{{ $message }}</span>
                             @enderror
                         </div>
 
                         <div class="mb-3">
                             <label class="form-label fw-bold">Status</label>
-                            <select wire:model="status" class="form-select w-25 @error('status') is-invalid @enderror">
+                            <select wire:model="form.status"
+                                class="form-select w-25 @error('form.status') is-invalid @enderror">
                                 <option value="draft">Draft</option>
                                 <option value="published">Publish</option>
                             </select>
-                            @error('status')
+                            @error('form.status')
                                 <span class="text-danger small">{{ $message }}</span>
                             @enderror
                         </div>
@@ -154,18 +163,18 @@
 
                         <div class="mb-4">
                             <label class="form-label fw-bold">What will students learn? (min 3 points)</label>
-                            @foreach ($objectives as $index => $objective)
+                            @foreach ($form->objectives as $index => $objective)
                                 <div class="input-group mb-2" wire:key="obj-{{ $index }}">
-                                    <input type="text" wire:model="objectives.{{ $index }}"
-                                        class="form-control @error('objectives.' . $index) is-invalid @enderror"
+                                    <input type="text" wire:model="form.objectives.{{ $index }}"
+                                        class="form-control @error('form.objectives.' . $index) is-invalid @enderror"
                                         placeholder="Learning objective...">
 
-                                    @if (count($objectives) > 3)
+                                    @if (count($form->objectives) > 3)
                                         <button type="button" wire:click="removeObjective({{ $index }})"
                                             class="btn btn-outline-danger"><i class="bi bi-trash"></i></button>
                                     @endif
                                 </div>
-                                @error('objectives.' . $index)
+                                @error('form.objectives.' . $index)
                                     <div class="text-danger small mb-2">{{ $message }}</div>
                                 @enderror
                             @endforeach
@@ -173,24 +182,25 @@
                             <button type="button" wire:click="addObjective"
                                 class="btn btn-sm btn-outline-success mt-1">+ Add Objective</button>
 
-                            @error('objectives')
+                            @error('form.objectives')
                                 <div class="text-danger small mt-2">{{ $message }}</div>
                             @enderror
                         </div>
 
                         <div class="mb-3">
                             <label class="form-label fw-bold">Prerequisites</label>
-                            <textarea wire:model="requirements" class="form-control @error('requirements') is-invalid @enderror" rows="3"></textarea>
-                            @error('requirements')
+                            <textarea wire:model="form.requirements" class="form-control @error('form.requirements') is-invalid @enderror"
+                                rows="3"></textarea>
+                            @error('form.requirements')
                                 <span class="text-danger small">{{ $message }}</span>
                             @enderror
                         </div>
 
                         <div class="mb-3">
                             <label class="form-label fw-bold">Who is this course for?</label>
-                            <textarea wire:model="who_is_it_for" class="form-control @error('who_is_it_for') is-invalid @enderror"
+                            <textarea wire:model="form.who_is_it_for" class="form-control @error('form.who_is_it_for') is-invalid @enderror"
                                 rows="3"></textarea>
-                            @error('who_is_it_for')
+                            @error('form.who_is_it_for')
                                 <span class="text-danger small">{{ $message }}</span>
                             @enderror
                         </div>
@@ -198,18 +208,18 @@
                         <div class="row mb-3">
                             <label class="form-label fw-bold">Course Duration</label>
                             <div class="col">
-                                <input type="number" wire:model="duration_hours"
-                                    class="form-control @error('duration_hours') is-invalid @enderror"
+                                <input type="number" wire:model="form.duration_hours"
+                                    class="form-control @error('form.duration_hours') is-invalid @enderror"
                                     placeholder="Hours">
-                                @error('duration_hours')
+                                @error('form.duration_hours')
                                     <span class="text-danger small">{{ $message }}</span>
                                 @enderror
                             </div>
                             <div class="col">
-                                <input type="number" wire:model="duration_minutes"
-                                    class="form-control @error('duration_minutes') is-invalid @enderror"
+                                <input type="number" wire:model="form.duration_minutes"
+                                    class="form-control @error('form.duration_minutes') is-invalid @enderror"
                                     placeholder="Minutes">
-                                @error('duration_minutes')
+                                @error('form.duration_minutes')
                                     <span class="text-danger small">{{ $message }}</span>
                                 @enderror
                             </div>
@@ -217,9 +227,9 @@
 
                         <div class="mb-3">
                             <label class="form-label fw-bold">Price ($) - Leave 0 for free courses</label>
-                            <input type="number" wire:model="price"
-                                class="form-control w-25 @error('price') is-invalid @enderror">
-                            @error('price')
+                            <input type="number" wire:model="form.price"
+                                class="form-control w-25 @error('form.price') is-invalid @enderror">
+                            @error('form.price')
                                 <span class="text-danger small d-block">{{ $message }}</span>
                             @enderror
                         </div>
