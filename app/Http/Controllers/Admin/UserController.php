@@ -62,16 +62,13 @@ class UserController extends Controller
         }
         $data = $request->validated();
 
-        // التعامل مع الباسورد: لو بعت باسورد جديدة شفرها، لو مبعتش شيلها من المصفوفة خالص
         if ($request->filled('password')) {
             $data['password'] = Hash::make($request->password);
         } else {
             unset($data['password']);
         }
 
-        // التعامل مع الصورة
         if ($request->hasFile('profile_picture')) {
-            // امسح القديمة لو موجودة عشان السيرفر ميتمليش
             if ($user->profile_picture && Storage::disk('public')->exists($user->profile_picture)) {
                 Storage::disk('public')->delete($user->profile_picture);
             }

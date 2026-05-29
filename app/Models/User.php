@@ -71,9 +71,24 @@ class User extends Authenticatable
     {
         return $this->hasMany(Course::class, 'instructor_id');
     }
-
     public function enrollments()
     {
         return $this->hasMany(Enrollment::class, 'student_id');
+    }
+
+    public function enrolledCourses()
+    {
+        return $this->belongsToMany(
+            Course::class,
+            'enrollments',
+            'student_id',
+            'course_id'
+        )
+            ->withPivot('status', 'progress_percentage')
+            ->withTimestamps();
+    }
+    public function scopeInstructors($query)
+    {
+        return $query->where('role', 'instructor');
     }
 }

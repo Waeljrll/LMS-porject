@@ -51,26 +51,49 @@
                             </div>
                         </div>
 
-                        <!-- Enroll Button -->
-                        @if (auth()->user()->isStudent())
-                            @if (auth()->user()->enrollments()->where('course_id', $course->id)->exists())
-                                <a href="#" class="btn btn-success btn-lg w-100">
-                                    <i class="bi bi-play-circle"></i> Continue Learning
-                                </a>
-                            @else
-                                <form action="{{ route('student.courses.enroll', $course->id) }}" method="POST">
-                                    @csrf
-                                    <button type="submit" class="btn btn-primary btn-lg w-100">
-                                        <i class="bi bi-cart-plus"></i>
+                        <!-- Enroll Button Section -->
+                        <div class="card mb-4">
+                            <div class="card-body text-center">
+                                @if (auth()->check() && auth()->user()->isStudent())
+                                    @if ($isEnrolled)
+                                        <a href="{{ route('student.courses.learn', $course->id) }}"
+                                            class="btn btn-success btn-lg w-100">
+                                            <i class="bi bi-play-circle me-2"></i>Continue Learning
+                                        </a>
+                                        <small class="text-muted d-block mt-2">
+                                            <i class="bi bi-check-circle-fill text-success me-1"></i>
+                                            You are enrolled in this course
+                                        </small>
+                                    @else
+                                        <form action="{{ route('student.enrollments.store', $course->id) }}"
+                                            method="POST">
+                                            @csrf
+                                            <button type="submit" class="btn btn-primary btn-lg w-100">
+                                                <i class="bi bi-cart-plus me-2"></i>
+                                                @if ($course->price == 0)
+                                                    Enroll Now - Free
+                                                @else
+                                                    Enroll Now - ${{ number_format($course->price, 2) }}
+                                                @endif
+                                            </button>
+                                        </form>
                                         @if ($course->price == 0)
-                                            Enroll Now - Free
-                                        @else
-                                            Enroll Now - ${{ number_format($course->price, 2) }}
+                                            <small class="text-success d-block mt-2">
+                                                <i class="bi bi-gift me-1"></i> Free Course
+                                            </small>
                                         @endif
-                                    </button>
-                                </form>
-                            @endif
-                        @endif
+                                    @endif
+                                @elseif(!auth()->check())
+                                    <a href="{{ route('login') }}?redirect={{ urlencode(request()->url()) }}"
+                                        class="btn btn-primary btn-lg w-100">
+                                        <i class="bi bi-box-arrow-in-right me-2"></i>Login to Enroll
+                                    </a>
+                                    <small class="text-muted d-block mt-2">
+                                        Don't have an account? <a href="{{ route('register') }}">Register</a>
+                                    </small>
+                                @endif
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -101,11 +124,11 @@
                                         <li class="list-group-item d-flex justify-content-between align-items-center">
                                             <span>
                                                 <i
-                                                    class="bi bi-{{ $lesson->type == 'video' ? 'play-circle' : 'file-text' }} me-2"></i>
+                                                    class="bi bi-{{ $lesson->lesson_type == 'video' ? 'play-circle' : 'file-text' }} me-2"></i>
                                                 {{ $lesson->title }}
                                             </span>
                                             <span class="text-muted small">
-                                                @if ($lesson->is_free)
+                                                @if ($lesson->is_preview)
                                                     <span class="badge bg-success">Free Preview</span>
                                                 @else
                                                     <i class="bi bi-lock"></i>
@@ -182,12 +205,13 @@
                         </ul>
 
                         <!-- Enroll Button (Mobile/Sticky) -->
-                        @if (auth()->user()->isStudent())
+                        @if (auth()->check() && auth()->user()->isStudent())
                             <div class="mt-3 d-lg-none">
-                                @if (auth()->user()->enrollments()->where('course_id', $course->id)->exists())
-                                    <a href="#" class="btn btn-success w-100">Continue Learning</a>
+                                @if ($isEnrolled)
+                                    <a href="{{ route('student.courses.learn', $course->id) }}"
+                                        class="btn btn-success w-100">Continue Learning</a>
                                 @else
-                                    <form action="{{ route('student.courses.enroll', $course->id) }}" method="POST">
+                                    <form action="{{ route('student.enrollments.store', $course->id) }}" method="POST">
                                         @csrf
                                         <button type="submit" class="btn btn-primary w-100">
                                             @if ($course->price == 0)
@@ -198,6 +222,13 @@
                                         </button>
                                     </form>
                                 @endif
+                            </div>
+                        @elseif(!auth()->check())
+                            <div class="mt-3 d-lg-none">
+                                <a href="{{ route('login') }}?redirect={{ urlencode(request()->url()) }}"
+                                    class="btn btn-primary w-100">
+                                    Login to Enroll
+                                </a>
                             </div>
                         @endif
                     </div>

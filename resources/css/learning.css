@@ -1,0 +1,152 @@
+/* ==========================================
+   Learning Page Styles
+   ========================================== */
+
+/* --- Sidebar --- */
+.curriculum-sidebar {
+    height: calc(100vh - 60px);
+    overflow-y: auto;
+    background: #f8f9fa;
+    border-right: 1px solid #dee2e6;
+}
+
+.curriculum-sidebar::-webkit-scrollbar {
+    width: 6px;
+}
+
+.curriculum-sidebar::-webkit-scrollbar-thumb {
+    background: #adb5bd;
+    border-radius: 3px;
+}
+
+/* --- Lesson Items --- */
+.lesson-item {
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border-left: 3px solid transparent;
+    text-decoration: none;
+    color: #212529;
+}
+
+.lesson-item:hover {
+    background: #e9ecef;
+}
+
+.lesson-item.active {
+    background: #e7f1ff;
+    border-left-color: #0d6efd;
+}
+
+.lesson-item.completed {
+    background: #d1e7dd;
+}
+
+.lesson-item.locked {
+    opacity: 0.6;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+.lesson-item .check-icon {
+    color: #198754;
+}
+
+.lesson-item .lock-icon {
+    color: #6c757d;
+}
+
+/* --- Video Container --- */
+.video-container {
+    position: relative;
+    padding-bottom: 56.25%;
+    height: 0;
+    overflow: hidden;
+    background: #000;
+    border-radius: 8px;
+}
+
+.video-container video,
+.video-container iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border: none;
+}
+
+/* --- Progress Bars --- */
+.top-progress {
+    height: 4px;
+    background: #e9ecef;
+}
+
+.top-progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, #0d6efd, #0dcaf0);
+    transition: width 0.3s ease;
+}
+
+.progress-thin {
+    height: 6px;
+    border-radius: 3px;
+}
+
+/* --- Mark Complete Button --- */
+.btn-complete {
+    transition: all 0.3s ease;
+}
+
+.btn-complete:hover {
+    transform: scale(1.02);
+}
+
+.btn-complete.completed {
+    background: #198754 !important;
+    border-color: #198754 !important;
+    cursor: default;
+}
+
+/* --- Document Content --- */
+.lesson-document {
+    font-size: 1.1rem;
+    line-height: 1.8;
+    color: #333;
+}
+
+.lesson-document p {
+    margin-bottom: 1rem;
+}
+
+/* --- Locked Lesson Overlay --- */
+.locked-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+}
+
+.locked-overlay i {
+    font-size: 3rem;
+    color: white;
+}
+
+/* --- Responsive --- */
+@media (max-width: 768px) {
+    .curriculum-sidebar {
+        height: auto;
+        max-height: 50vh;
+        border-right: none;
+        border-bottom: 1px solid #dee2e6;
+    }
+
+    .video-container {
+        border-radius: 0;
+    }
+}

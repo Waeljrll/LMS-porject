@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 
 class Lesson extends Model
 {
@@ -41,5 +42,19 @@ class Lesson extends Model
         }
 
         return asset("storage/{$this->video_url}");
+    }
+    public function getYoutubeIdAttribute()
+    {
+        if ($this->lesson_type !== 'video' || empty($this->video_url)) {
+            return null;
+        }
+
+        preg_match(
+            '/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/ ]{11})/i',
+            $this->video_url,
+            $matches
+        );
+
+        return $matches[1] ?? null;
     }
 }

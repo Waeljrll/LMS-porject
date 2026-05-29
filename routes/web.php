@@ -5,12 +5,15 @@ use App\Http\Controllers\Admin\DashboardController as AdminDashboard;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\CourseController;
 use App\Http\Controllers\Instructor\DashboardController as InstructorDashboard;
+use App\Http\Controllers\Instructor\CourseController as InstractorCourseController;
 use App\Http\Controllers\Instructor\InstructorCategoryController;
 use App\Http\Controllers\LessonController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SectionController;
 use App\Http\Controllers\Student\CourseController as StudentCourse;
 use App\Http\Controllers\Student\DashboardController as StudentDashboard;
+use App\Http\Controllers\Student\EnrollmentController;
+use App\Http\Controllers\Student\LearningController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -93,6 +96,7 @@ Route::middleware(['auth', 'role:instructor'])
         Route::put('/courses/{course}', [CourseController::class, 'update'])->name('courses.update');
         Route::delete('/courses/{course}', [CourseController::class, 'destroy'])->name('courses.destroy');
         Route::get('/courses/{course}/content', [CourseController::class, 'content'])->name('courses.content');
+        Route::get('courses/{course}/analytics', [InstractorCourseController::class, 'analytics'])->name('courses.analytics');
 
         Route::post('/courses/{course}/sections', [SectionController::class, 'storeSection'])->name('sections.store');
         Route::put('/sections/{section}', [SectionController::class, 'updateSection'])->name('sections.update');
@@ -110,17 +114,20 @@ Route::middleware(['auth', 'role:instructor'])
 | STUDENT
 |--------------------------------------------------------------------------
 */
-Route::middleware(['auth', 'role:student'])
-    ->prefix('student')
-    ->name('student.')
-    ->group(function () {
-        Route::get('/dashboard', [StudentDashboard::class, 'index'])->name('dashboard');
-        Route::get('/courses', [StudentCourse::class, 'index'])->name('courses.index');
-        Route::get('/my-courses', [StudentCourse::class, 'myCourses'])->name('courses.my');
-        Route::get('/courses/{course}', [StudentCourse::class, 'show'])->name('courses.show');
-        Route::post('/courses/{course}/enroll', [StudentCourse::class, 'enroll'])->name('courses.enroll');
-    });
+Route::middleware(['auth', 'role:student'])->prefix('student')->name('student.')->group(function () {
+    Route::get('/dashboard', [StudentDashboard::class, 'index'])->name('dashboard');
 
-Route::middleware(['auth'])->get('/courses/{course}', [StudentCourse::class, 'show'])->name('courses.show');
+    Route::get('courses', [StudentCourse::class, 'index'])->name('courses.index');
+    Route::get('courses/{course}', [StudentCourse::class, 'show'])->name('courses.show');
+
+    // الاشتراكات الخاصة بالطالب
+    Route::get('my-courses', [EnrollmentController::class, 'index'])->name('enrollments.index');
+    Route::post('courses/{course}/enroll', [EnrollmentController::class, 'store'])->name('enrollments.store');
+
+    Route::get('courses/{course}/learn/{lesson?}', [LearningController::class, 'show'])
+        ->name('courses.learn')
+        ->whereNumber('lesson');
+});
+// Route::middleware(['auth'])->get('/courses/{course}', [StudentCourse::class, 'show'])->name('courses.show');
 
 require __DIR__ . '/auth.php';

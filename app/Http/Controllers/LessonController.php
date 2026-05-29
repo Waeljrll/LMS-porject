@@ -50,9 +50,7 @@ class LessonController extends Controller
         } else {
             $createData['text_content'] = null;
 
-            // تعديل المسار ليرمي فوراً جوه فولدر lessons اللي أنت عملته
             if ($request->hasFile('video_file')) {
-                // التخزين هنا هيعمل ملفات جوه public/lessons علطول
                 $createData['video_url'] = $request->file('video_file')->store('lessons', 'public');
             } else {
                 $createData['video_url'] = $validated['video_url'] ?? null;

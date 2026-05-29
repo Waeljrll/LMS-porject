@@ -9,7 +9,7 @@
     <div class="card shadow-sm">
         <div class="card-body">
             <div class="d-flex justify-content-between align-items-center mb-4">
-                <h5 class="card-title mb-0">Course Wizard - Step {{ $currentStep }} of 2</h5>
+                <h5 class="card-title mb-0">Saving courses - Step {{ $currentStep }} of 2</h5>
                 <span class="badge bg-primary">Progress: {{ $currentStep == 1 ? '50%' : '100%' }}</span>
             </div>
 
