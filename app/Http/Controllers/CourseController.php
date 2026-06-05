@@ -94,6 +94,7 @@ class CourseController extends Controller
 
     public function content(Course $course)
     {
+
         if (Auth::user()->isInstructor() && $course->instructor_id !== Auth::id()) {
             abort(403, 'Unauthorized');
         }

@@ -101,6 +101,11 @@
                                                             class="bi bi-arrow-down"></i></button>
                                                 </form>
 
+                                                <a href="{{ route($role . '.quizzes.builder', $section->id) }}"
+                                                    class="btn btn-outline-warning btn-sm me-1"
+                                                    title="إدارة اختبارات هذا الفصل">
+                                                    <i class="bi bi-question-circle"></i>
+                                                </a>
                                                 <a href="{{ route($role . '.lessons.create', $section->id) }}"
                                                     class="btn btn-outline-success btn-sm me-1">
                                                     <i class="bi bi-plus-circle"></i> Add Lesson
@@ -127,7 +132,6 @@
                                             </div>
                                         </div>
                                     </div>
-
                                     <div class="card-body p-0 bg-white">
                                         <ul class="list-group list-group-flush">
                                             @if ($section->lessons->count() == 0)

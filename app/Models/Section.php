@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Section extends Model
 {
@@ -18,5 +19,14 @@ class Section extends Model
     public function lessons()
     {
         return $this->hasMany(Lesson::class)->orderBy('order_number', 'asc');
+    }
+    public function quiz(): HasOne
+    {
+        return $this->hasOne(Quiz::class);
+    }
+
+    public function hasQuiz(): bool
+    {
+        return $this->quiz()->exists();
     }
 }

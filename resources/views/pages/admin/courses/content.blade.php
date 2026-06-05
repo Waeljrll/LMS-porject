@@ -4,7 +4,7 @@
     <div class="container-fluid px-4 py-4">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <div>
-                <h1 class="h3 mb-0 text-gray-800">إدارة محتوى الكورس: {{ $course->title }}</h1>
+                <h1 class="h3 mb-0 text-gray-800">إدارة محتوىسسسسس الكورس: {{ $course->title }}</h1>
                 <p class="text-muted mb-0">قم بتنظيم الكورس إلى فصول (Sections) ودروس (Lessons)</p>
             </div>
             <div class="d-flex gap-2">
@@ -151,7 +151,11 @@
                                                     <button class="btn btn-outline-secondary btn-sm" title="Move Down"><i
                                                             class="bi bi-arrow-down"></i></button>
                                                 </form>
-
+                                                <a href="{{ route($role . '.quizzes.builder', $section->id) }}"
+                                                    class="btn btn-outline-warning btn-sm me-1"
+                                                    title="إدارة اختبارات هذا الفصل">
+                                                    <i class="bi bi-question-circle">Add Quizz</i>
+                                                </a>
                                                 <a href="{{ route($role . '.lessons.create', $section->id) }}"
                                                     class="btn btn-outline-success btn-sm me-1">
                                                     <i class="bi bi-plus-circle"></i> Add Lesson

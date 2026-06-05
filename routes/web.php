@@ -4,9 +4,10 @@ use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboard;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\CourseController;
-use App\Http\Controllers\Instructor\DashboardController as InstructorDashboard;
 use App\Http\Controllers\Instructor\CourseController as InstractorCourseController;
+use App\Http\Controllers\Instructor\DashboardController as InstructorDashboard;
 use App\Http\Controllers\Instructor\InstructorCategoryController;
+use App\Http\Controllers\Instructor\Quizzes\QuizBuilderController;
 use App\Http\Controllers\LessonController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SectionController;
@@ -107,6 +108,10 @@ Route::middleware(['auth', 'role:instructor'])
         Route::get('/lessons/{lesson}/edit', [LessonController::class, 'editLesson'])->name('lessons.edit');
         Route::put('/lessons/{lesson}', [LessonController::class, 'updateLesson'])->name('lessons.update');
         Route::delete('/lessons/{lesson}', [LessonController::class, 'destroyLesson'])->name('lessons.destroy');
+
+
+        Route::get('/sections/{section}/quiz/builder', [QuizBuilderController::class, 'index'])
+            ->name('quizzes.builder');
     });
 
 /*
@@ -128,6 +133,5 @@ Route::middleware(['auth', 'role:student'])->prefix('student')->name('student.')
         ->name('courses.learn')
         ->whereNumber('lesson');
 });
-// Route::middleware(['auth'])->get('/courses/{course}', [StudentCourse::class, 'show'])->name('courses.show');
 
 require __DIR__ . '/auth.php';

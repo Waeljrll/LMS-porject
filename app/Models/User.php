@@ -6,6 +6,7 @@ use App\Models\Course;
 use App\Models\Enrollment;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
@@ -90,5 +91,39 @@ class User extends Authenticatable
     public function scopeInstructors($query)
     {
         return $query->where('role', 'instructor');
+    }
+    public function completedLessons()
+    {
+        return $this->belongsToMany(
+            Lesson::class,
+            'lesson_progress',
+            'student_id',
+            'lesson_id'
+        )->wherePivot('is_completed', true);
+    }
+    public function quizAttempts(): HasMany
+    {
+        return $this->hasMany(QuizAttempt::class, 'student_id');
+    }
+
+    public function createdQuizzes(): HasMany
+    {
+        return $this->hasMany(Quiz::class, 'created_by');
+    }
+
+    public function hasAttemptedQuiz(Quiz $quiz): bool
+    {
+        return $this->quizAttempts()
+            ->where('quiz_id', $quiz->id)
+            ->where('status', '!=', 'in_progress')
+            ->exists();
+    }
+
+    public function getQuizAttempt(Quiz $quiz): ?QuizAttempt
+    {
+        return $this->quizAttempts()
+            ->where('quiz_id', $quiz->id)
+            ->where('status', 'in_progress')
+            ->first();
     }
 }

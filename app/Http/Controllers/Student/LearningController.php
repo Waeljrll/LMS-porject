@@ -5,43 +5,53 @@ namespace App\Http\Controllers\Student;
 use App\Http\Controllers\Controller;
 use App\Models\Course;
 use App\Models\Lesson;
-use App\Models\LessonProgress;
 use Illuminate\Support\Facades\Auth;
 
 class LearningController extends Controller
 {
-
+    /**
+     * Show the learning page for a specific course.
+     *
+     * @param Course $course Route Model Binding
+     * @param Lesson|null $lesson Optional specific lesson
+     */
     public function show(Course $course, ?Lesson $lesson = null)
     {
         $user = Auth::user();
 
-        $enrollment = $user->enrollments()->where('course_id', $course->id)->first();
+        // 1. Authorization: Must be enrolled
+        $enrollment = $user->enrollments()
+            ->where('course_id', $course->id)
+            ->first();
+
         if (!$enrollment) {
-            return redirect()->route('student.courses.show', $course)->with('error', 'يجب الاشتراك أولاً.');
+            return redirect()
+                ->route('student.courses.show', $course)
+                ->with('error', 'يجب الاشتراك أولاً.');
         }
 
-        $allLessons = $course->lessons()->orderBy('order_number')->get()->values();
 
-        if ($allLessons->isEmpty()) {
-            return redirect()->route('student.enrollments.index')
+        // 2. Check if course has any content
+        if ($course->getTotalLessonsCount() === 0) {
+            return redirect()
+                ->route('student.enrollments.index')
                 ->with('info', 'هذا الكورس لا يحتوي على أي محتوى تعليمي حتى الآن.');
         }
 
-        if (!$lesson && request()->has('lesson')) {
-            $lesson = $allLessons->firstWhere('id', (int) request('lesson'));
+        $lesson = $this->resolveLesson($course, $lesson);
+
+        if (!$course->findLesson($lesson->id)) {
+            abort(404, 'الدرس غير موجود في هذا الكورس.');
         }
 
-        if (!$lesson) {
-            $lesson = $allLessons->first();
-        }
+        // 5. Navigation (Domain Logic in Model)
+        $previousLesson = $course->getPreviousLesson($lesson);
+        $nextLesson = $course->getNextLesson($lesson);
 
-        $currentIndex = $allLessons->search(fn($item) => $item->id === $lesson->id);
-        if ($currentIndex === false) abort(404);
-
-        $previousLesson = $currentIndex > 0 ? $allLessons[$currentIndex - 1] : null;
-        $nextLesson = $currentIndex < ($allLessons->count() - 1) ? $allLessons[$currentIndex + 1] : null;
-
-        $sections = $course->sections()->with(['lessons' => fn($q) => $q->orderBy('order_number')])->get();
+        // 6. Curriculum for sidebar
+        $sections = $course->sections()
+            ->with(['lessons' => fn($q) => $q->orderBy('order_number')])
+            ->get();
 
         return view('pages.student.courses.learn', compact(
             'course',
@@ -51,5 +61,29 @@ class LearningController extends Controller
             'nextLesson',
             'enrollment'
         ));
+    }
+
+    /**
+     * Resolve which lesson to show based on request context.
+     * Extracted to private method for clarity.
+     */
+    private function resolveLesson(Course $course, ?Lesson $lesson): Lesson
+    {
+        // Priority 1: Route parameter /learn/{lesson}
+        if ($lesson !== null) {
+            return $lesson;
+        }
+
+        // Priority 2: Query string ?lesson=123
+        if (request()->has('lesson')) {
+            $resolved = $course->findLesson((int) request('lesson'));
+            if ($resolved) {
+                return $resolved;
+            }
+        }
+
+        // Priority 3: Default to first lesson
+        return $course->getFirstLesson()
+            ?? abort(404, 'لا يوجد دروس متاحة.');
     }
 }

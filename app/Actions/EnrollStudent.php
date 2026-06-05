@@ -16,7 +16,6 @@ class EnrollStudent
     {
         $student = $user ?? Auth::user();
 
-        // 1. تحقق من أن الطالب غير مسجل مسبقاً
         $existing = Enrollment::where('student_id', $student->id)
             ->where('course_id', $course->id)
             ->first();
@@ -25,12 +24,10 @@ class EnrollStudent
             return $existing;
         }
 
-        // 2. التحقق من أن الكورس منشور
         if ($course->status !== 'published') {
             throw new \Exception('This course is not available for enrollment.');
         }
 
-        // 3. إنشاء سجل التسجيل
         $enrollment = Enrollment::create([
             'student_id'   => $student->id,
             'course_id'    => $course->id,

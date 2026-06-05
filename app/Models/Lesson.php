@@ -31,6 +31,52 @@ class Lesson extends Model
         return $this->belongsToMany(User::class, 'lesson_progress', 'lesson_id', 'student_id')
             ->withTimestamps();
     }
+    public function nextLesson(): ?Lesson
+    {
+        return $this->section->course->getNextLesson($this);
+    }
+
+    /**
+     * Get previous lesson within the same course.
+     */
+    public function previousLesson(): ?Lesson
+    {
+        return $this->section->course->getPreviousLesson($this);
+    }
+
+    /**
+     * Check if this is the first lesson in the course.
+     */
+    public function isFirstLesson(): bool
+    {
+        return $this->previousLesson() === null;
+    }
+
+    /**
+     * Check if this is the last lesson in the course.
+     */
+    public function isLastLesson(): bool
+    {
+        return $this->nextLesson() === null;
+    }
+
+    /**
+     * Get position info for progress calculation.
+     */
+    public function getPositionInCourse(): array
+    {
+        $course = $this->section->course;
+        $lessons = $course->getOrderedLessons();
+        $index = $lessons->search(fn(Lesson $l) => $l->id === $this->id);
+
+        return [
+            'index' => $index !== false ? $index + 1 : null, // 1-based
+            'total' => $lessons->count(),
+            'percentage' => $lessons->count() > 0
+                ? round((($index + 1) / $lessons->count()) * 100, 1)
+                : 0,
+        ];
+    }
     public function videoUrl()
     {
         if (!$this->video_url) {
