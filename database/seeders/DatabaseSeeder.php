@@ -2,9 +2,17 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
+use Database\Seeders\CategorySeeder;
+use Database\Seeders\CourseSeeder;
+use Database\Seeders\EnrollmentSeeder;
+use Database\Seeders\LessonProgressSeeder;
+use Database\Seeders\LessonSeeder;
+use Database\Seeders\QuizSeeder;
+use Database\Seeders\ReviewSeeder;
+use Database\Seeders\SectionSeeder;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Database\Seeders\UserSeeder;
 
 class DatabaseSeeder extends Seeder
 {
@@ -18,9 +26,16 @@ class DatabaseSeeder extends Seeder
         // User::factory(10)->create();
 
         $this->call([
-        UserSeeder::class,
-        
-    ]);
-        
+            UserSeeder::class,
+            CategorySeeder::class,
+            CourseSeeder::class,
+            SectionSeeder::class,
+            LessonSeeder::class,
+            EnrollmentSeeder::class,
+            ReviewSeeder::class,
+            QuizSeeder::class,
+            LessonProgressSeeder::class,
+
+        ]);
     }
 }

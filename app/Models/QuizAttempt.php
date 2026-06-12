@@ -9,9 +9,17 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class QuizAttempt extends Model
 {
     protected $fillable = [
-        'quiz_id', 'student_id', 'attempt_number', 'started_at',
-        'submitted_at', 'time_taken_seconds', 'score', 'total_points',
-        'percentage', 'status', 'ip_address',
+        'quiz_id',
+        'student_id',
+        'attempt_number',
+        'started_at',
+        'submitted_at',
+        'time_taken_seconds',
+        'score',
+        'total_points',
+        'percentage',
+        'status',
+        'ip_address',
     ];
 
     protected $casts = [
@@ -60,6 +68,8 @@ class QuizAttempt extends Model
         return $this->status === 'failed';
     }
 
+    // ========== TIMER METHODS ==========
+
     public function timeRemaining(): ?int
     {
         if (!$this->quiz->time_limit_minutes || !$this->isInProgress()) {
@@ -68,6 +78,22 @@ class QuizAttempt extends Model
         $elapsed = now()->diffInSeconds($this->started_at);
         $limit = $this->quiz->time_limit_minutes * 60;
         return max(0, $limit - $elapsed);
+    }
+
+    public function timeRemainingFormatted(): string
+    {
+        $seconds = $this->timeRemaining();
+        if ($seconds === null) return '∞';
+        if ($seconds <= 0) return '00:00';
+
+        $minutes = floor($seconds / 60);
+        $secs = $seconds % 60;
+        return sprintf('%02d:%02d', $minutes, $secs);
+    }
+
+    public function isTimeUp(): bool
+    {
+        return $this->timeRemaining() !== null && $this->timeRemaining() <= 0;
     }
 
     public function formattedTimeTaken(): string

@@ -26,6 +26,7 @@ class Lesson extends Model
     }
 
 
+
     public function completedByStudents()
     {
         return $this->belongsToMany(User::class, 'lesson_progress', 'lesson_id', 'student_id')

@@ -91,4 +91,5 @@ class Quiz extends Model
             ->orderBy('attempt_number', 'desc')
             ->get();
     }
+
 }

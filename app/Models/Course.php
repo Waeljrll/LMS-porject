@@ -63,10 +63,16 @@ class Course extends Model
     public function getOrderedLessons(): Collection
     {
         return $this->lessons()
-            ->orderBy('sections.sort_order')
-            ->orderBy('lessons.order_number')
-            ->with('section') // Eager load for section info
-            ->get();
+            ->with('section')
+            ->get()
+            ->sort(function ($a, $b) {
+                // الترتيب حسب ترتيب القسم أولاً، ثم ترتيب الدرس ثانياً
+                $sectionOrder = ($a->section->sort_order ?? 0) <=> ($b->section->sort_order ?? 0);
+                if ($sectionOrder !== 0) return $sectionOrder;
+
+                return ($a->order_number ?? 0) <=> ($b->order_number ?? 0);
+            })
+            ->values();
     }
 
     /**
@@ -95,15 +101,16 @@ class Course extends Model
     {
         $lessons = $this->getOrderedLessons();
 
-        $currentIndex = $lessons->search(
-            fn(Lesson $lesson) => $lesson->id === $currentLesson->id
-        );
+        // البحث باستخدام الـ ID فقط وليس الـ Object كاملاً
+        $currentIndex = $lessons->search(function ($item) use ($currentLesson) {
+            return (int) $item->id === (int) $currentLesson->id;
+        });
 
-        // Lesson not found in this course
         if ($currentIndex === false) {
             return null;
         }
 
+        // إرجاع العنصر التالي
         return $lessons->get($currentIndex + 1);
     }
 

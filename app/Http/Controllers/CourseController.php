@@ -99,6 +99,6 @@ class CourseController extends Controller
             abort(403, 'Unauthorized');
         }
 
-        return view('pages.admin.courses.content', compact('course'));
+        return view('pages.instructor.courses.content', compact('course'));
     }
 }

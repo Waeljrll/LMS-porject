@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class QuizQuestion extends Model
 {
     protected $fillable = [
-        'quiz_id', 'question_text', 'question_image',
+        'quiz_id', 'question_text', 'question_image', 'image_path',
         'question_type', 'points', 'explanation', 'sort_order',
     ];
 
@@ -49,8 +49,25 @@ class QuizQuestion extends Model
         return $this->question_type === 'true_false';
     }
 
+    public function isEssay(): bool
+    {
+        return $this->question_type === 'essay';
+    }
+
     public function getShuffledOptions()
     {
         return $this->options()->inRandomOrder()->get();
     }
+    public function imageUrl()
+{
+    if ($this->image_path && filter_var($this->image_path, FILTER_VALIDATE_URL)) {
+        return $this->image_path;
+    }
+
+    if ($this->image_path) {
+        return asset("storage/{$this->image_path}");
+    }
+
+    return asset("assets/img/default-question.jpg");
+}
 }

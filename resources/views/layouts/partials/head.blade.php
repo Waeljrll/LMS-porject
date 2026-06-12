@@ -5,7 +5,7 @@
     <title>LMS</title>
     <meta content="" name="description">
     <meta content="" name="keywords">
-    {{-- Learning Page CSS --}}
+
     <!-- Favicons -->
     <link href="{{ asset('assets/img/favicon.png') }}" rel="icon">
     <link href="{{ asset('assets/img/apple-touch-icon.png') }}" rel="apple-touch-icon">
@@ -25,8 +25,10 @@
     <link href="{{ asset('assets/vendor/remixicon/remixicon.css') }}" rel="stylesheet">
     <link href="{{ asset('assets/vendor/simple-datatables/style.css') }}" rel="stylesheet">
 
+    <!-- Template Main CSS -->
     <link href="{{ asset('assets/css/style.css') }}" rel="stylesheet">
 
     @stack('styles')
-
+    @livewireStyles
+    @vite(['resources/js/app.js'])
 </head>

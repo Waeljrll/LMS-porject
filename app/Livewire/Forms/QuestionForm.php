@@ -13,6 +13,8 @@ class QuestionForm extends Form
     public $question_type = 'mcq';
     public $points = 1;
     public $explanation = '';
+    public $image = null;
+    public $existing_image_path = null;
 
     public $options = [
         ['option_text' => '', 'is_correct' => false],
@@ -26,6 +28,8 @@ class QuestionForm extends Form
         $this->question_type = $question->question_type;
         $this->points = $question->points;
         $this->explanation = $question->explanation;
+        $this->image = null;
+        $this->existing_image_path = $question->image_path;
 
         $this->options = $question->options->map(function ($option) {
             return [
@@ -34,6 +38,10 @@ class QuestionForm extends Form
                 'is_correct' => (bool) $option->is_correct
             ];
         })->toArray();
+
+        if ($this->question_type === 'essay') {
+            $this->options = [];
+        }
     }
 
     public function resetForm(): void
@@ -43,6 +51,8 @@ class QuestionForm extends Form
         $this->question_type = 'mcq';
         $this->points = 1;
         $this->explanation = '';
+        $this->image = null;
+        $this->existing_image_path = null;
         $this->options = [
             ['option_text' => '', 'is_correct' => false],
             ['option_text' => '', 'is_correct' => false],
@@ -53,12 +63,13 @@ class QuestionForm extends Form
     {
         $rules = [
             'question_text' => 'required|string|min:5',
-            'question_type' => 'required|in:mcq,true_false',
+            'question_type' => 'required|in:mcq,true_false,essay',
             'points' => 'required|integer|min:1|max:10',
             'explanation' => 'nullable|string',
+            'image' => 'nullable|image|max:2048',
         ];
 
-        if ($this->question_type === 'mcq') {
+        if (in_array($this->question_type, ['mcq', 'true_false'], true)) {
             $rules['options'] = 'required|array|min:2|max:6';
             $rules['options.*.option_text'] = 'required|string|max:255';
         }

@@ -6,28 +6,26 @@ use App\Http\Controllers\Controller;
 use App\Models\Quiz;
 use App\Models\Section;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 
 class QuizBuilderController extends Controller
 {
     public function index(Section $section)
     {
-        // Authorization
-        if (Auth::user()->isInstructor() && $section->course->instructor_id !== Auth::id()) {
-            abort(403, 'غير مصرح لك.');
-        }
+        Gate::authorize('create', [Quiz::class, $section]);
 
-        if (!$section->hasQuiz()) {
-            $quiz = Quiz::create([
-                'section_id' => $section->id,
-                'title' => 'اختبار: ' . $section->title,
+        $quiz = Quiz::firstOrCreate(
+            ['section_id' => $section->id],
+
+            [
+                'title'                    => 'اختبار: ' . $section->title,
                 'passing_score_percentage' => 70,
-                'max_attempts' => 3,
-                'created_by' => Auth::id(),
-            ]);
-        } else {
-            $quiz = $section->quiz;
-        }
+                'max_attempts'             => 3,
+                'created_by'               => auth()->id(),
+            ]
+        );
 
+        // 3. تمرير البيانات بأمان للـ View
         return view('pages.instructor.quizzes.builder', compact('quiz', 'section'));
     }
 }

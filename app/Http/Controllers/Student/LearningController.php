@@ -17,6 +17,7 @@ class LearningController extends Controller
      */
     public function show(Course $course, ?Lesson $lesson = null)
     {
+
         $user = Auth::user();
 
         // 1. Authorization: Must be enrolled
@@ -48,6 +49,7 @@ class LearningController extends Controller
         $previousLesson = $course->getPreviousLesson($lesson);
         $nextLesson = $course->getNextLesson($lesson);
 
+
         // 6. Curriculum for sidebar
         $sections = $course->sections()
             ->with(['lessons' => fn($q) => $q->orderBy('order_number')])
@@ -70,19 +72,11 @@ class LearningController extends Controller
     private function resolveLesson(Course $course, ?Lesson $lesson): Lesson
     {
         // Priority 1: Route parameter /learn/{lesson}
-        if ($lesson !== null) {
+        if ($lesson !== null && $lesson->section->course_id === $course->id) {
             return $lesson;
         }
 
-        // Priority 2: Query string ?lesson=123
-        if (request()->has('lesson')) {
-            $resolved = $course->findLesson((int) request('lesson'));
-            if ($resolved) {
-                return $resolved;
-            }
-        }
-
-        // Priority 3: Default to first lesson
+        // 2. إذا لم يوجد (أو لا ينتمي للكورس)، ابحث عن أول درس
         return $course->getFirstLesson()
             ?? abort(404, 'لا يوجد دروس متاحة.');
     }

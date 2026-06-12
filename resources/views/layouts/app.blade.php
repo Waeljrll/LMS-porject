@@ -12,7 +12,11 @@
     @include('layouts.partials.side-bar')
 
     <main id="main" class="main">
-        @yield('front-content')
+        @hasSection('front-content')
+            @yield('front-content')
+        @else
+            {{ $slot ?? '' }}
+        @endif
     </main>
 
     @include('layouts.partials.footer')

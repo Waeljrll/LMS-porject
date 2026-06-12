@@ -86,9 +86,9 @@ class SectionController extends Controller
 
         $section->delete();
 
-        $remainingSections = $course->sections()->orderBy('order_number', 'asc')->get();
+        $remainingSections = $course->sections()->orderBy('sort_order', 'asc')->get();
         foreach ($remainingSections as $index => $sec) {
-            $sec->update(['order_number' => $index + 1]);
+            $sec->update(['sort_order' => $index + 1]);
         }
 
         return redirect()->back()->with('success', 'تم حذف الفصل بنجاح!');
